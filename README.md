@@ -2,6 +2,10 @@
 
 This is a tool that consumes your C# domain models and types and creates TypeScript declaration files from them. There's other tools that does this but what makes this one different is that it internally uses [Roslyn (the .NET compiler platform)](https://github.com/dotnet/roslyn) to parse the source files, which removes the need to create and maintain our own parser.
 
+This project is a fork from [svenheden/csharp-models-to-typescript](https://github.com/svenheden/csharp-models-to-typescript) and include some new features:
+- Config option `includeComments` to include Comments and Remarks comments to TypeScript types.
+- Config option `validateEmitDefaultValue` to mark property as optional (question mark) when WCF attribute `DataMember` has the property `EmitDefaultValue` as `false`.
+
 
 [![NPM version][npm-image]][npm-url]
 
@@ -14,7 +18,7 @@ This is a tool that consumes your C# domain models and types and creates TypeScr
 ## Install
 
 ```
-$ npm install --save csharp-models-to-typescript
+$ npm install --save digocesar/csharp-models-to-typescript
 ```
 
 ## How to use
