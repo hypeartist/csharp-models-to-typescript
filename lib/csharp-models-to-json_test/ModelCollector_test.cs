@@ -200,14 +200,14 @@ namespace CSharpModelsToJson.Tests
             Assert.That(model, Is.Not.Null);
             Assert.That(model.Properties, Is.Not.Null);
 
-            Assert.That(model.Obsolete, Is.True);
-            Assert.That(model.ObsoleteMessage, Is.EqualTo("test"));
+            Assert.That(model.ExtraInfo.Obsolete, Is.True);
+            Assert.That(model.ExtraInfo.ObsoleteMessage, Is.EqualTo("test"));
 
-            Assert.That(model.Properties.First(x => x.Identifier.Equals("A")).Obsolete, Is.True);
-            Assert.That(model.Properties.First(x => x.Identifier.Equals("A")).ObsoleteMessage, Is.EqualTo("test prop"));
+            Assert.That(model.Properties.First(x => x.Identifier.Equals("A")).ExtraInfo.Obsolete, Is.True);
+            Assert.That(model.Properties.First(x => x.Identifier.Equals("A")).ExtraInfo.ObsoleteMessage, Is.EqualTo("test prop"));
 
-            Assert.That(model.Properties.First(x => x.Identifier.Equals("B")).Obsolete, Is.False);
-            Assert.That(model.Properties.First(x => x.Identifier.Equals("B")).ObsoleteMessage, Is.Null);
+            Assert.That(model.Properties.First(x => x.Identifier.Equals("B")).ExtraInfo.Obsolete, Is.False);
+            Assert.That(model.Properties.First(x => x.Identifier.Equals("B")).ExtraInfo.ObsoleteMessage, Is.Null);
         }
 
         [Test]
@@ -232,8 +232,8 @@ namespace CSharpModelsToJson.Tests
             Assert.That(model, Is.Not.Null) ;
             Assert.That(model.Values, Is.Not.Null);
 
-            Assert.That(model.Obsolete, Is.True);
-            Assert.That(model.ObsoleteMessage, Is.EqualTo("test"));
+            Assert.That(model.ExtraInfo.Obsolete, Is.True);
+            Assert.That(model.ExtraInfo.ObsoleteMessage, Is.EqualTo("test"));
         }
 
         [Test]
@@ -266,6 +266,45 @@ namespace CSharpModelsToJson.Tests
             Assert.That(model.Values["D"].Value, Is.EqualTo("0b00000100"));
             Assert.That(model.Values["E"].Value, Is.EqualTo("0x005"));
             Assert.That(model.Values["F"].Value, Is.EqualTo("0x00001a"));
+        }
+
+        [Test]
+        public void ReturnEmmitDefaultValueInfo()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"
+                public class A
+                {
+                    [DataMember(EmitDefaultValue = false)]
+                    public bool Prop1 { get; set; }
+
+                    [DataMember(EmitDefaultValue = true)]
+                    public bool Prop2 { get; set; }
+
+                    [DataMember( EmitDefaultValue = false )]
+                    public bool Prop3 { get; set; }
+
+                    [DataMember]
+                    public bool Prop4 { get; set; }
+
+                    public bool Prop5 { get; set; }
+                }"
+            );
+
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var modelCollector = new ModelCollector();
+            modelCollector.Visit(root);
+
+            Assert.That(modelCollector.Models, Is.Not.Null);
+            Assert.That(modelCollector.Models.Count, Is.EqualTo(1));
+            
+            var properties = modelCollector.Models.First().Properties;
+
+            Assert.That(properties.First(x => x.Identifier == "Prop1").ExtraInfo.EmitDefaultValue, Is.False);
+            Assert.That(properties.First(x => x.Identifier == "Prop2").ExtraInfo.EmitDefaultValue, Is.True);
+            Assert.That(properties.First(x => x.Identifier == "Prop3").ExtraInfo.EmitDefaultValue, Is.False);
+            Assert.That(properties.First(x => x.Identifier == "Prop4").ExtraInfo.EmitDefaultValue, Is.True);
+            Assert.That(properties.First(x => x.Identifier == "Prop5").ExtraInfo.EmitDefaultValue, Is.True);
         }
 
     }
